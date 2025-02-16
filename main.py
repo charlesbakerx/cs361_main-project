@@ -93,10 +93,31 @@ class RecipeBookPanel(Horizontal):
             self.ingredients.append(Static(ingredient))
 
 
-class ShoppingListsPanel(Static):
+class ShoppingListsPanel(Horizontal):
     """The panel that houses the Shopping Lists content."""
+
     def compose(self) -> ComposeResult:
-        yield Static()
+        # Left side: List of shopping lists
+        with Vertical():
+            # Header for the lists
+            yield Static("Name")
+
+            # ListView for the lists
+            self.shopping_lists = ListView()
+            yield self.shopping_lists
+
+        # Right side: DataTable for items in shopping list
+        with Vertical():
+            self.data_table = DataTable()
+            yield self.data_table
+
+    def on_mount(self):
+        shopping_list_items = ["Walmart", "Target"]
+        for item in shopping_list_items:
+            self.shopping_lists.append(ListItem(Static(item)))
+
+        self.data_table.add_columns("Name", "Quantity", "Unit")
+        self.data_table.add_rows([("Milk", 1, "gal"), ("Bread", 1, "loaf")])
 
 class AddItem(Static):
     """The sub-menu to add an item."""
@@ -140,7 +161,7 @@ class MainApp(App):
     def compose(self) -> ComposeResult:
         yield Header()
         yield NavigationBar()
-        yield RecipeBookPanel()
+        yield ShoppingListsPanel()
         yield Footer()
 
 
