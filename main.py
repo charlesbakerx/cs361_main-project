@@ -19,9 +19,9 @@ class MainApp(App):
                 input_widget.value = ""
 
         elif event.button.id == "remove_item":
-            if self.inventory_list.children:
-                self.inventory_list.remove_child(
-                    self.inventory_list.children[-1])
+            if self.inventory_list.children and self.inventory_list.highlighted_child:
+                self.inventory_list.highlighted_child.remove()
+                self.inventory_list.index = None
 
     def compose(self) -> ComposeResult:
         yield Header()
