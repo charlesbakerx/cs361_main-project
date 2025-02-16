@@ -6,50 +6,69 @@ from textual.widgets import (Header, Footer,
                              TabbedContent, TabPane, ListView,
                              ListItem, Static, Button, Input)
 
+class NavigationBar(Horizontal):
+    """The main navigation bar that houses the Inventory, Recipe Book, and Shopping Lists tabs aligned to the left along with
+    the Add, Edit, and Delete Buttons aligned to the right."""
+    def compose(self) -> ComposeResult:
+        yield Static()
+
+class InventoryPanel(Static):
+    """The panel that houses the Inventory content."""
+    def compose(self) -> ComposeResult:
+        yield Static()
+
+class RecipeBookPanel(Static):
+    """The panel that houses the Recipe Book content."""
+    def compose(self) -> ComposeResult:
+        yield Static()
+
+class ShoppingListsPanel(Static):
+    """The panel that houses the Shopping Lists content."""
+    def compose(self) -> ComposeResult:
+        yield Static()
+
+class AddItem(Static):
+    """The sub-menu to add an item."""
+    def compose(self) -> ComposeResult:
+        yield Static()
+
+class EditItem(Static):
+    """The sub-menu to edit an item."""
+    def compose(self) -> ComposeResult:
+        yield Static()
+
+class DeleteItem(Static):
+    """The sub-menu to delete an item."""
+    def compose(self) -> ComposeResult:
+        yield Static()
+
+class AddRecipe(Static):
+    """The sub-menu to add a recipe."""
+    def compose(self) -> ComposeResult:
+        yield Static()
+
+class EditRecipe(Static):
+    """The sub-menu to edit a recipe."""
+    def compose(self) -> ComposeResult:
+        yield Static()
+
+class DeleteRecipe(Static):
+    """The sub-menu to delete a recipe."""
+    def compose(self) -> ComposeResult:
+        yield Static()
+
+class WarningDialog(Static):
+    def compose(self) -> ComposeResult:
+        yield Static()
+
+class HelpMenu(Static):
+    def compose(self) -> ComposeResult:
+        yield Static()
 
 class MainApp(App):
-
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        """Handler for button presses to add and remove items"""
-        if event.button.id == "add_item":
-            input_widget = self.query_one("#item_input_field", Input)
-            item_name = input_widget.value.strip()
-            if item_name:
-                self.inventory_list.append(ListItem(Static(item_name)))
-                input_widget.value = ""
-
-        elif event.button.id == "remove_item":
-            if self.inventory_list.children and self.inventory_list.highlighted_child:
-                self.inventory_list.highlighted_child.remove()
-                self.inventory_list.index = None
-
     def compose(self) -> ComposeResult:
         yield Header()
-
-        with TabbedContent():
-            with TabPane("Inventory"):
-                self.inventory_list = ListView()
-                yield self.inventory_list
-                yield Input(placeholder="Enter item name", id="item_input_field")
-                yield Button("Add Item", id="add_item")
-                yield Button("Remove Selected", id="remove_item")
-
-            with TabPane("Recipe Book"):
-                with Horizontal():
-                    self.recipe_list = ListView()
-                    self.recipe_preview = Static(
-                        "This is the recipe preview pane", classes="content")
-                    yield self.recipe_list
-                    yield self.recipe_preview
-
-            with TabPane("Shopping Lists"):
-                with Horizontal():
-                    self.shopping_list = ListView()
-                    self.shopping_list_items = Static(
-                        "This is the items preview pane", classes="content")
-                    yield self.shopping_list
-                    yield self.shopping_list_items
-
+        yield NavigationBar()
         yield Footer()
 
 
