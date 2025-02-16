@@ -1,12 +1,7 @@
-from datetime import datetime
-
-from textual import events
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical
-from textual.widgets import (Header, Footer,
-                             TabbedContent, TabPane, ListView,
-                             ListItem, Static, Button, Input, DataTable)
-
+from textual.widgets import (Header, Footer, ListView,
+                             ListItem, Static, Button, DataTable)
 
 class NavigationBar(Horizontal):
     """The main navigation bar that houses the Inventory, Recipe Book, and Shopping Lists tabs aligned to the left along with
@@ -161,8 +156,33 @@ class MainApp(App):
     def compose(self) -> ComposeResult:
         yield Header()
         yield NavigationBar()
-        yield ShoppingListsPanel()
+        with Container(id="content"):
+            self.inventory_panel = InventoryPanel(id="inventory_panel")
+            self.recipe_panel = RecipeBookPanel(id="recipe_panel")
+            self.shopping_panel = ShoppingListsPanel(id="shopping_panel")
+            self.recipe_panel.styles.display = "none"
+            self.shopping_panel.styles.display = "none"
+            yield self.inventory_panel
+            yield self.recipe_panel
+            yield self.shopping_panel
         yield Footer()
+
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        """Event handler for button presses. Handles tab switching for the navigation bar."""
+        button_id = event.button.id
+        container = self.query_one("#content")
+
+        for panel in container.children:
+            panel.styles.display = "none"
+
+        # Display the selected panel based on button ID
+        if button_id == "inventory_tab":
+            container.query_one("#inventory_panel").styles.display = "block"
+        elif button_id == "recipe_book_tab":
+            container.query_one("#recipe_panel").styles.display = "block"
+        elif button_id == "shopping_lists_tab":
+            container.query_one("#shopping_panel").styles.display = "block"
 
 
 if __name__ == "__main__":
