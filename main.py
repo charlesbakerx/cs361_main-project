@@ -1,5 +1,6 @@
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical
+from textual.widget import Widget
 from textual.widgets import (Header, Footer, ListView,
                              ListItem, Static, Button, DataTable)
 
@@ -15,7 +16,7 @@ class NavigationBar(Horizontal):
             yield Button("Shopping Lists", id="shopping_lists_tab")
 
         # Right-aligned buttons in a container
-        with Horizontal():
+        with Horizontal(id="actions"):
             yield Button("Add", id="add_button")
             yield Button("Edit", id="edit_button")
             yield Button("Delete", id="delete_button")
@@ -31,9 +32,14 @@ class InventoryPanel(DataTable):
     ]
 
     def compose(self) -> ComposeResult:
-        yield DataTable()
-        self.add_columns(*self.inventory_data[0])
-        self.add_rows(self.inventory_data[1:])
+        self.data_table = DataTable(id="inventory_data_table")
+        self.data_table.zebra_stripes = True
+        self.data_table.cursor_type = "row"
+        yield self.data_table
+
+    def on_mount(self):
+        self.data_table.add_columns(*self.inventory_data[0])
+        self.data_table.add_rows(self.inventory_data[1:])
 
 class RecipeBookPanel(Horizontal):
     """The panel that houses the Recipe Book content."""
@@ -94,11 +100,8 @@ class ShoppingListsPanel(Horizontal):
     def compose(self) -> ComposeResult:
         # Left side: List of shopping lists
         with Vertical():
-            # Header for the lists
-            yield Static("Name")
-
-            # ListView for the lists
-            self.shopping_lists = ListView()
+            # DataTable for the lists
+            self.shopping_lists = DataTable()
             yield self.shopping_lists
 
         # Right side: DataTable for items in shopping list
@@ -107,9 +110,10 @@ class ShoppingListsPanel(Horizontal):
             yield self.data_table
 
     def on_mount(self):
+        self.shopping_lists.add_columns("Name")
         shopping_list_items = ["Walmart", "Target"]
         for item in shopping_list_items:
-            self.shopping_lists.append(ListItem(Static(item)))
+            self.shopping_lists.add_row(item)
 
         self.data_table.add_columns("Name", "Quantity", "Unit")
         self.data_table.add_rows([("Milk", 1, "gal"), ("Bread", 1, "loaf")])
@@ -153,9 +157,11 @@ class HelpMenu(Static):
         yield Static()
 
 class MainApp(App):
+    CSS_PATH = "style.tcss"
+
     def compose(self) -> ComposeResult:
         yield Header()
-        yield NavigationBar()
+        yield NavigationBar(id="navbar")
         with Container(id="content"):
             self.inventory_panel = InventoryPanel(id="inventory_panel")
             self.recipe_panel = RecipeBookPanel(id="recipe_panel")
@@ -167,22 +173,33 @@ class MainApp(App):
             yield self.shopping_panel
         yield Footer()
 
-
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        """Event handler for button presses. Handles tab switching for the navigation bar."""
+
+        """Event handler for button presses."""
         button_id = event.button.id
-        container = self.query_one("#content")
+        if button_id == "inventory_tab" or button_id == "recipe_book_tab" or button_id == "shopping_lists_tab":
+            container = self.query_one("#content")
+            for panel in container.children:
+                panel.styles.display = "none"
+            # Display the selected panel based on button ID
+            if button_id == "inventory_tab":
+                container.query_one("#inventory_panel").styles.display = "block"
+            elif button_id == "recipe_book_tab":
+                container.query_one("#recipe_panel").styles.display = "block"
+            elif button_id == "shopping_lists_tab":
+                container.query_one("#shopping_panel").styles.display = "block"
 
-        for panel in container.children:
-            panel.styles.display = "none"
+        else:
+            # noinspection PyTypeChecker
+            table: DataTable = self.query_one("#inventory_data_table")
+            if button_id == "add_button":
+                return
+            elif button_id == "edit_button":
+                return
+            elif button_id == "delete_button":
+                row_key, _ = table.coordinate_to_cell_key(table.cursor_coordinate)
+                table.remove_row(row_key)
 
-        # Display the selected panel based on button ID
-        if button_id == "inventory_tab":
-            container.query_one("#inventory_panel").styles.display = "block"
-        elif button_id == "recipe_book_tab":
-            container.query_one("#recipe_panel").styles.display = "block"
-        elif button_id == "shopping_lists_tab":
-            container.query_one("#shopping_panel").styles.display = "block"
 
 
 if __name__ == "__main__":
